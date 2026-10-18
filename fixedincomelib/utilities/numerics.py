@@ -109,19 +109,51 @@ class Interpolator1DPCP(Interpolator1D):
 
     def interpolate(self, x: float) -> float:
         #TODO
-        pass
+        if self.length == 0:
+            raise ValueError("At least one interpolation node is required.")
+        i = min(
+            int(np.searchsorted(self.axis1, x, side="left")),
+            self.length - 1,
+        )
+        return float(self.values[i])
 
     def integrate(self, start_x: float, end_x: float) -> float:
         #TODO
-        pass
+        weights = self.gradient_of_integrated_value_wrt_ordinate(
+            start_x, end_x
+        )
+        return float(np.dot(weights, self.values))
+
 
     def gradient_wrt_ordinate(self, x: float) -> np.ndarray:
         #TODO
-        pass
+        if self.length == 0:
+            raise ValueError("At least one interpolation node is required.")
+
+        i = min(
+            int(np.searchsorted(self.axis1, x, side="left")),
+            self.length - 1,
+        )
+        gradient = np.zeros(self.length, dtype=float)
+        gradient[i] = 1.0
+        return gradient
 
     def gradient_of_integrated_value_wrt_ordinate(self, start_x: float, end_x: float) -> np.ndarray:
         #TODO
-        pass
+        if self.length == 0:
+            raise ValueError("At least one interpolation node is required.")
+
+        if end_x < start_x:
+            return -self.gradient_of_integrated_value_wrt_ordinate(
+                end_x, start_x
+            )
+        lower = np.concatenate(([-np.inf], self.axis1[:-1]))
+        upper = np.concatenate((self.axis1[:-1], [np.inf]))
+
+        return np.maximum(
+            0.0,
+            np.minimum(end_x, upper) - np.maximum(start_x, lower),
+        )
 
 
 
